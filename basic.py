@@ -10,6 +10,7 @@ size = width, height
 screen = pygame.display.set_mode(size)
 fps = 60
 clock = pygame.time.Clock()
+points = 0
 
 
 def load_image(name, colorkey=None):
@@ -109,6 +110,11 @@ class Diamond(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 10, tile_height * pos_y + 10)
 
+    def update(self, n):
+        global points
+        if pygame.sprite.spritecollideany(self, player_group):
+            points += 1
+            self.kill()
 
 
 class Camera:
