@@ -63,6 +63,7 @@ tile_images = {
     'empty': load_image('grass.png')
 }
 player_image = load_image('mario.png')
+diamond_image = load_image('star.png')
 
 tile_width = tile_height = 50
 
@@ -101,6 +102,15 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.rect.move(-50, 0)
 
 
+class Diamond(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(diamond_group, all_sprites)
+        self.image = diamond_image
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x + 10, tile_height * pos_y + 10)
+
+
+
 class Camera:
     def __init__(self):
         self.dx = 0
@@ -121,10 +131,12 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+diamond_group = pygame.sprite.Group()
 
 
 def generate_level(level):
     new_player, x, y = None, None, None
+    diamond_coords = []
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -136,14 +148,19 @@ def generate_level(level):
                 player_x = x
                 player_y = y
                 Tile('empty', x, y)
+            elif level[y][x] == '&':
+                diamond_coords.append([x, y])
+                Tile('empty', x, y)
     new_player = Player(player_x, player_y)
+    for diamond in diamond_coords:
+        Diamond(diamond[0], diamond[1])
     return new_player, x, y
 
 
 player, level_x, level_y = generate_level(load_level('map.txt'))
 
 camera = Camera()
-start_screen()
+# start_screen()
 running = True
 while running:
     for event in pygame.event.get():
