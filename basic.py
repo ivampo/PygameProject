@@ -59,6 +59,15 @@ def start_screen():
         clock.tick(fps)
 
 
+def draw_points(screen):
+    font = pygame.font.Font(None, 30)
+    text = font.render(f"Points: {points}", True, (255, 255, 255))
+    text_x = width - text.get_width() - 10
+    text_y = 10
+    screen.fill((0, 0, 0), (text_x - 5, 0, text_x + text.get_width(), text_y + text.get_height() + 5))
+    screen.blit(text, (text_x, text_y))
+
+
 tile_images = {
     'wall': load_image('box.png'),
     'empty': load_image('grass.png')
@@ -185,6 +194,7 @@ while running:
     for sprite in all_sprites:
         camera.apply(sprite)
     all_sprites.draw(screen)
+    draw_points(screen)
     clock.tick(fps)
     pygame.display.flip()
 
