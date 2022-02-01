@@ -69,11 +69,12 @@ def draw_points(screen):
 
 
 tile_images = {
-    'wall': load_image('box.png'),
-    'empty': load_image('grass.png')
+    'wall': pygame.transform.scale(load_image('bricks2.png'), (50, 50)),
+    'empty': pygame.transform.scale(load_image('dirt2.png'), (50, 50))
 }
 player_image = load_image('mario.png')
-diamond_image = load_image('star.png')
+diamond_image = load_image('diamond1.png')
+diamond_image = pygame.transform.scale(diamond_image, (26, 26))
 
 tile_width = tile_height = 50
 
@@ -117,7 +118,7 @@ class Diamond(pygame.sprite.Sprite):
         super().__init__(diamond_group, all_sprites)
         self.image = diamond_image
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 10, tile_height * pos_y + 10)
+            tile_width * pos_x + 12, tile_height * pos_y + 12)
 
     def update(self, n):
         global points
