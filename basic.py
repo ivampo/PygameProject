@@ -88,11 +88,25 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
-        self.image = player_image
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 15, tile_height * pos_y + 5)
+            tile_width * x + 2, tile_height * y)
+        self.last_n = 0
+        self.dic = {1: 16, 2: 4, 3: 8, 4: 12}
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
 
     def update(self, n):
         if n == 1:
@@ -111,6 +125,17 @@ class Player(pygame.sprite.Sprite):
             self.rect = self.rect.move(50, 0)
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect = self.rect.move(-50, 0)
+        self.image_step(n)
+        self.image = self.frames[self.cur_frame]
+
+    def image_step(self, n):
+        if self.last_n == n:
+            self.cur_frame = (self.cur_frame + 1) % self.dic[n]
+            if self.cur_frame < self.dic[n] - 4:
+                self.cur_frame += self.dic[n] - 4
+        else:
+            self.cur_frame = self.dic[n] - 4
+        self.last_n = n
 
 
 class Diamond(pygame.sprite.Sprite):
@@ -167,7 +192,7 @@ def generate_level(level):
             elif level[y][x] == '&':
                 diamond_coords.append([x, y])
                 Tile('empty', x, y)
-    new_player = Player(player_x, player_y)
+    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for diamond in diamond_coords:
         Diamond(diamond[0], diamond[1])
     return new_player, x, y
