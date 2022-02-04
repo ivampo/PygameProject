@@ -16,7 +16,7 @@ health = 100
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
+    fullname = os.path.join(name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -32,7 +32,7 @@ def load_image(name, colorkey=None):
 
 
 def load_level(filename):
-    filename = "data/" + filename
+    filename =  filename
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
 
@@ -87,7 +87,8 @@ tile_images = {
 player_image = load_image('mario.png')
 good_plant_image = load_image('good_plant.png')
 good_plant_image = pygame.transform.scale(good_plant_image, (26, 26))
-bad_plant_image = load_image('bad_plant.png')
+bad_plant_image = load_image('bad_plant1.png')
+enemy_image = load_image('star.png')
 bad_plant_image = pygame.transform.scale(bad_plant_image, (26, 26))
 
 tile_width = tile_height = 50
@@ -203,19 +204,45 @@ class Camera:
         self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
 
 
-player = None
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, directionn):
+        super().__init__(enemy_group, all_sprites)
+        self.image = enemy_image
+        self.direction = [directionn, 1]
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x + 10, tile_height * pos_y + 10)
 
+    def update(self):
+        if pygame.sprite.spritecollideany(self, player_group):
+            pass
+            # end_screen()
+        if self.direction[0] == 'h':
+            self.rect = self.rect.move(self.direction[1] * 2, 0)
+            if pygame.sprite.spritecollideany(self, walls_group):
+                self.direction[1] *= -1
+                self.rect = self.rect.move(self.direction[1] * 4, 0)
+
+        else:
+            self.rect = self.rect.move(0, self.direction[1] * 1)
+            if pygame.sprite.spritecollideany(self, walls_group):
+                self.direction[1] *= -1
+                self.rect = self.rect.move(0, self.direction[1] * 2)
+
+
+player = None
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 plant_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
 
 def generate_level(level):
     new_player, x, y = None, None, None
     good_plant_coords = []
     bad_plant_coords = []
+    enemy_coords = []
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -234,11 +261,19 @@ def generate_level(level):
             elif level[y][x] == '+':
                 bad_plant_coords.append([x, y])
                 Tile('empty', x, y)
+            elif level[y][x] == 'h':
+                enemy_coords.append([x, y, 'h'])
+                Tile('empty', x, y)
+            elif level[y][x] == 'v':
+                enemy_coords.append([x, y, 'v'])
+                Tile('empty', x, y)
     new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for plant in good_plant_coords:
         GoodPlant(plant[0], plant[1])
     for plant in bad_plant_coords:
         BadPlant(plant[0], plant[1])
+    for i in enemy_coords:
+        Enemy(i[0], i[1], i[2])
     return new_player, x, y
 
 
