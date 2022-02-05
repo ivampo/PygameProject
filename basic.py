@@ -13,10 +13,11 @@ fps = 15
 clock = pygame.time.Clock()
 points = 0
 health = 100
+god_mode = False
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
+    fullname = os.path.join(name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -32,7 +33,7 @@ def load_image(name, colorkey=None):
 
 
 def load_level(filename):
-    filename = "data/" + filename
+    filename =  filename
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
 
@@ -47,7 +48,7 @@ def terminate():
 
 
 def start_screen():
-    fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
+    fon = pygame.transform.scale(load_image('box.png'), (width, height))
     screen.blit(fon, (0, 0))
 
     while True:
@@ -59,6 +60,10 @@ def start_screen():
                 return
         pygame.display.flip()
         clock.tick(fps)
+
+
+def end_screen():
+    pass
 
 
 def color_surface(surface, red, green, blue):
@@ -87,7 +92,8 @@ tile_images = {
 player_image = load_image('mario.png')
 good_plant_image = load_image('good_plant.png')
 good_plant_image = pygame.transform.scale(good_plant_image, (26, 26))
-bad_plant_image = load_image('bad_plant.png')
+bad_plant_image = load_image('bad_plant1.png')
+enemy_image = load_image('star.png')
 bad_plant_image = pygame.transform.scale(bad_plant_image, (26, 26))
 
 tile_width = tile_height = 50
@@ -187,6 +193,8 @@ class BadPlant(pygame.sprite.Sprite):
             health -= 10
             player.turn_red()
             self.kill()
+            if health <= 0:
+                end_screen()
 
 
 class Camera:
@@ -203,19 +211,74 @@ class Camera:
         self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
 
 
-player = None
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, directionn):
+        super().__init__(enemy_group, all_sprites)
+        self.frames = []
+        self.image = enemy_image
+        self.cur_frame = 0
+        self.cut_sheet()
+        self.direction = [directionn, 1]
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
 
+    def update(self):
+        global health, god_mode
+        if pygame.sprite.spritecollideany(self, player_group) and not god_mode:
+            health -= 10
+            player.turn_red()
+            if health <= 0:
+                end_screen()
+            god_mode = True
+            pygame.time.set_timer(pygame.USEREVENT, 1500, 1)
+
+        if self.direction[0] == 'h':
+            self.rect = self.rect.move(self.direction[1] * 5, 0)
+            if pygame.sprite.spritecollideany(self, walls_group):
+                self.direction[1] *= -1
+                self.rect = self.rect.move(self.direction[1] * 10, 0)
+            if self.direction[1] == 1:
+                self.cur_frame = (self.cur_frame + 1) % 4
+                self.image = self.frames[self.cur_frame + 4]
+            else:
+                self.cur_frame = (self.cur_frame + 1) % 4
+                self.image = self.frames[self.cur_frame]
+        else:
+            self.rect = self.rect.move(0, self.direction[1] * 5)
+            if pygame.sprite.spritecollideany(self, walls_group):
+                self.direction[1] *= -1
+                self.rect = self.rect.move(0, self.direction[1] * 10)
+            if self.direction[1] == 1:
+                self.cur_frame = (self.cur_frame + 1) % 4
+                self.image = self.frames[self.cur_frame + 8]
+            else:
+                self.cur_frame = (self.cur_frame + 1) % 4
+                self.image = self.frames[self.cur_frame + 12]
+
+    def cut_sheet(self):
+        self.rect = pygame.Rect(0, 0, load_image("dragon1.png").get_width() // 4,
+                                load_image("dragon1.png").get_height() // 4)
+        for j in range(4):
+            for i in range(4):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(load_image("dragon1.png").subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+
+player = None
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 plant_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
 
 def generate_level(level):
     new_player, x, y = None, None, None
     good_plant_coords = []
     bad_plant_coords = []
+    enemy_coords = []
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -234,22 +297,32 @@ def generate_level(level):
             elif level[y][x] == '+':
                 bad_plant_coords.append([x, y])
                 Tile('empty', x, y)
+            elif level[y][x] == 'h':
+                enemy_coords.append([x, y, 'h'])
+                Tile('empty', x, y)
+            elif level[y][x] == 'v':
+                enemy_coords.append([x, y, 'v'])
+                Tile('empty', x, y)
+    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for plant in good_plant_coords:
         GoodPlant(plant[0], plant[1])
     for plant in bad_plant_coords:
         BadPlant(plant[0], plant[1])
-    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
+    for i in enemy_coords:
+        Enemy(i[0], i[1], i[2])
     return new_player, x, y
 
 
 player, level_x, level_y = generate_level(load_level('map.txt'))
 
 camera = Camera()
-# start_screen()
+start_screen()
 running = True
 motion = 0
 while running:
     for event in pygame.event.get():
+        if event.type == pygame.USEREVENT:
+            god_mode = False
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
