@@ -167,7 +167,7 @@ class GoodPlant(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 12, tile_height * pos_y + 12)
 
-    def update(self):
+    def collect(self):
         global points
         if pygame.sprite.spritecollideany(self, player_group):
             points += 1
@@ -181,7 +181,7 @@ class BadPlant(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x + 12, tile_height * pos_y + 12)
 
-    def update(self):
+    def collect(self):
         global health
         if pygame.sprite.spritecollideany(self, player_group):
             health -= 10
@@ -234,11 +234,11 @@ def generate_level(level):
             elif level[y][x] == '+':
                 bad_plant_coords.append([x, y])
                 Tile('empty', x, y)
-    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for plant in good_plant_coords:
         GoodPlant(plant[0], plant[1])
     for plant in bad_plant_coords:
         BadPlant(plant[0], plant[1])
+    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     return new_player, x, y
 
 
@@ -261,6 +261,9 @@ while running:
                 motion = 3
             if event.key == pygame.K_RIGHT:
                 motion = 4
+            if event.key == pygame.K_SPACE:
+                for plant in plant_group:
+                    plant.collect()
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, pygame.K_RIGHT,
                              pygame.K_UP, pygame.K_DOWN]:
