@@ -3,8 +3,8 @@ import sys
 import pygame
 import numpy
 
-width = 450
-height = 400
+width = 1100
+height = 800
 
 pygame.init()
 size = width, height
@@ -63,8 +63,45 @@ def start_screen():
 
 
 def end_screen():
-    pass
-
+    global running, player, level_x, level_y, motion, health, \
+        all_sprites, tiles_group, walls_group, player_group, \
+        plant_group, enemy_group
+    fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
+    font = pygame.font.SysFont(None, 32)
+    text = font.render('Нажмите любую клавишу для продолжения', False, pygame.Color('white'))
+    text.set_alpha(0)
+    alpha = 0
+    alpha1 = 0
+    fon.set_alpha(alpha)
+    screen.blit(fon, (0, 0))
+    a = True
+    while a:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN) and alpha >= 70:
+                a = False
+        print(alpha)
+        alpha += 3
+        alpha1 = (alpha1 + 10) % 256
+        fon.set_alpha(min(255, alpha))
+        text.set_alpha(alpha1)
+        screen.blit(fon, (0, 0))
+        screen.blit(text, (300, 700))
+        pygame.display.flip()
+        clock.tick(fps)
+    running = False
+    all_sprites = pygame.sprite.Group()
+    tiles_group = pygame.sprite.Group()
+    walls_group = pygame.sprite.Group()
+    player_group = pygame.sprite.Group()
+    plant_group = pygame.sprite.Group()
+    enemy_group = pygame.sprite.Group()
+    player, level_x, level_y = generate_level(load_level('map.txt'))
+    start_screen()
+    running = True
+    health = 10
+    motion = 0
 
 def color_surface(surface, red, green, blue):
     arr = pygame.surfarray.pixels3d(surface)
@@ -77,7 +114,7 @@ def draw_points(screen):
     font = pygame.font.Font(None, 30)
     text_points = font.render(f"Points: {points}", True, (255, 255, 255))
     text_health = font.render(f"Health: {health}", True, (255, 255, 255))
-    max_width = max(text_points.get_width(), text_health.get_width())
+    max_width = 115
     text_x = width - max_width - 10
     text_y = 5
     screen.fill((0, 0, 0), (text_x - 5, 0, text_x + max_width, text_y + text_points.get_height() * 2 + 5))
@@ -226,6 +263,7 @@ class Enemy(pygame.sprite.Sprite):
         global health, god_mode
         if pygame.sprite.spritecollideany(self, player_group) and not god_mode:
             health -= 10
+            draw_points(screen)
             player.turn_red()
             if health <= 0:
                 end_screen()
