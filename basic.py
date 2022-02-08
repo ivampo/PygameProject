@@ -12,7 +12,7 @@ screen = pygame.display.set_mode(size)
 fps = 15
 clock = pygame.time.Clock()
 points = 0
-health = 100
+health = 10
 god_mode = False
 
 
@@ -62,16 +62,19 @@ def start_screen():
         clock.tick(fps)
 
 
-def end_screen():
+def end_screen(win=False):
     global running, player, level_x, level_y, motion, health, \
         all_sprites, tiles_group, walls_group, player_group, \
         plant_group, enemy_group
-    fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
+    if win:
+        fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
+    else:
+        fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
     font = pygame.font.SysFont(None, 32)
     text = font.render('Нажмите любую клавишу для продолжения', False, pygame.Color('white'))
     text.set_alpha(0)
     alpha = 0
-    alpha1 = 0
+    alpha_text = 0
     fon.set_alpha(alpha)
     screen.blit(fon, (0, 0))
     a = True
@@ -81,11 +84,10 @@ def end_screen():
                 terminate()
             elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN) and alpha >= 70:
                 a = False
-        print(alpha)
         alpha += 3
-        alpha1 = (alpha1 + 10) % 256
+        alpha_text = (alpha_text + 10) % 256
         fon.set_alpha(min(255, alpha))
-        text.set_alpha(alpha1)
+        text.set_alpha(alpha_text)
         screen.blit(fon, (0, 0))
         screen.blit(text, (300, 700))
         pygame.display.flip()
@@ -102,6 +104,7 @@ def end_screen():
     running = True
     health = 10
     motion = 0
+
 
 def color_surface(surface, red, green, blue):
     arr = pygame.surfarray.pixels3d(surface)
@@ -166,25 +169,23 @@ class Player(pygame.sprite.Sprite):
                     frame_location, self.rect.size)))
 
     def step(self, n=0):
-        if n == 1:
-            self.rect = self.rect.move(0, -10)
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect = self.rect.move(0, 10)
-        if n == 2:
-            self.rect = self.rect.move(0, 10)
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect = self.rect.move(0, -10)
-        if n == 3:
-            self.rect = self.rect.move(-10, 0)
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect = self.rect.move(10, 0)
-        if n == 4:
-            self.rect = self.rect.move(10, 0)
-            if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect = self.rect.move(-10, 0)
+        move = [(0, -10), (0, 10), (-10, 0), (10, 0)]
+        move_inversion = [(0, 10), (0, -10), (10, 0), (-10, 0)]
         if n:
-            self.image_step(n)
-            self.image = self.frames[self.cur_frame]
+            for i in range(5):
+                self.rect = self.rect.move(move[n - 1])
+                if pygame.sprite.spritecollideany(self, walls_group):
+                    self.rect = self.rect.move(move_inversion[n - 1])
+                self.image_step(n)
+                self.image = self.frames[self.cur_frame]
+                all_sprites.update()
+                camera.update(player)
+                for sprite in all_sprites:
+                    camera.apply(sprite)
+                all_sprites.draw(screen)
+                draw_points(screen)
+                clock.tick(fps)
+                pygame.display.flip()
 
     def image_step(self, n):
         if self.last_n == n:
