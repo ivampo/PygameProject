@@ -1,10 +1,9 @@
 import os
 import sys
 import pygame
-import numpy
 
-width = 600
-height = 400
+width = 800
+height = 600
 
 pygame.init()
 size = width, height
@@ -12,7 +11,7 @@ screen = pygame.display.set_mode(size)
 fps = 15
 clock = pygame.time.Clock()
 points = 0
-health = 10
+health = 100
 god_mode = False
 
 
@@ -66,7 +65,7 @@ def end_screen(win=False):
         all_sprites, tiles_group, walls_group, player_group, \
         plant_group, enemy_group, bad_plant_group
     if win:
-        fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
+        fon = pygame.transform.scale(load_image('end_screen_win.png'), (width, height))
     else:
         fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
     font = pygame.font.SysFont(None, 32)
@@ -88,7 +87,7 @@ def end_screen(win=False):
         fon.set_alpha(min(255, alpha))
         text.set_alpha(alpha_text)
         screen.blit(fon, (0, 0))
-        screen.blit(text, (300, 700))
+        screen.blit(text, ((width - text.get_width()) // 2, height - 150))
         pygame.display.flip()
         clock.tick(fps)
     running = False
@@ -97,9 +96,9 @@ def end_screen(win=False):
     walls_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     plant_group = pygame.sprite.Group()
-    bad_plant_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    player, level_x, level_y = generate_level(load_level('map3.txt'))
+    bad_plant_group = pygame.sprite.Group()
+    player, level_x, level_y = generate_level(load_level('map.txt'))
     start_screen()
     running = True
     health = 10
@@ -133,7 +132,6 @@ good_plant_image = load_image('good_plant.png')
 good_plant_image = pygame.transform.scale(good_plant_image, (26, 26))
 bad_plant_image = load_image('bad_plant1.png')
 bad_plant_image = pygame.transform.scale(bad_plant_image, (26, 26))
-enemy_image = load_image('dragon1.png')
 
 tile_width = tile_height = 50
 
@@ -215,6 +213,8 @@ class GoodPlant(pygame.sprite.Sprite):
         if pygame.sprite.spritecollideany(self, player_group):
             points += 1
             self.kill()
+            if len(plant_group.sprites()) == 0:
+                end_screen(True)
 
 
 class BadPlant(pygame.sprite.Sprite):
@@ -249,12 +249,12 @@ class Camera:
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y, directionn):
+    def __init__(self, sheet, pos_x, pos_y, directionn):
         super().__init__(enemy_group, all_sprites)
         self.frames = []
-        self.image = enemy_image
+        self.cut_sheet(sheet)
         self.cur_frame = 0
-        self.cut_sheet()
+        self.image = self.frames[self.cur_frame]
         self.direction = [directionn, 1]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
@@ -293,14 +293,14 @@ class Enemy(pygame.sprite.Sprite):
                 self.cur_frame = (self.cur_frame + 1) % 4
                 self.image = self.frames[self.cur_frame + 12]
 
-    def cut_sheet(self):
-        self.rect = pygame.Rect(0, 0, load_image("dragon1.png").get_width() // 4,
-                                load_image("dragon1.png").get_height() // 4)
+    def cut_sheet(self, sheet):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // 4,
+                                sheet.get_height() // 4)
         for j in range(4):
             for i in range(4):
                 frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(load_image("dragon1.png").subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
+                self.frames.append(pygame.transform.scale(load_image("dragon1.png").subsurface(pygame.Rect(
+                    frame_location, self.rect.size)), (50, 50)))
 
 
 player = None
@@ -342,23 +342,24 @@ def generate_level(level):
             elif level[y][x] == 'v':
                 enemy_coords.append([x, y, 'v'])
                 Tile('empty', x, y)
+    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for plant in good_plant_coords:
         GoodPlant(plant[0], plant[1])
     for plant in bad_plant_coords:
         BadPlant(plant[0], plant[1])
-    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for i in enemy_coords:
-        Enemy(i[0], i[1], i[2])
+        Enemy(load_image('dragon1.png'), i[0], i[1], i[2])
     return new_player, x, y
 
 
-player, level_x, level_y = generate_level(load_level('map3.txt'))
+player, level_x, level_y = generate_level(load_level('map2.txt'))
 
 camera = Camera()
 start_screen()
 running = True
 motion = 0
 while running:
+    print(len(plant_group.sprites()))
     for event in pygame.event.get():
         if event.type == pygame.USEREVENT:
             god_mode = False
