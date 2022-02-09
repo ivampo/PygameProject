@@ -11,7 +11,6 @@ screen = pygame.display.set_mode(size)
 fps = 15
 clock = pygame.time.Clock()
 points = 0
-health = 100
 god_mode = False
 
 
@@ -47,15 +46,54 @@ def terminate():
 
 def start_screen():
     fon = pygame.transform.scale(load_image('box.png'), (width, height))
-    screen.blit(fon, (0, 0))
+    font = pygame.font.SysFont(None, 32)
+    health_list = [20, 50, 100]
+    health_num = 1
+    map_list = ['map.txt', 'map2.txt', 'map3.txt']
+    map_num = 0
+    text1 = font.render('Номер карты:', False, pygame.Color('white'))
+    text1_value = font.render(str(map_num + 1), False, pygame.Color('white'))
+    text2 = font.render('Кол-во здоровья:', False, pygame.Color('white'))
+    text2_value = font.render(str(health_list[health_num]), False, pygame.Color('white'))
+    author_text = font.render('СОЗДАТЕЛИ: Старцев Иван, Ульяна Гагина.', False, pygame.Color('white'))
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                print(pos)
+                if 300 <= pos[0] <= 500 and 400 <= pos[1] <= 480:
+                    return health_list[health_num], map_list[map_num]
+                if 330 <= pos[0] <= 380 and 110 <= pos[1] <= 160:
+                    map_num = (map_num - 1) % 3
+                    text1_value = font.render(str(map_num + 1), False, pygame.Color('white'))
+                if 430 <= pos[0] <= 480 and 110 <= pos[1] <= 160:
+                    map_num = (map_num + 1) % 3
+                    text1_value = font.render(str(map_num + 1), False, pygame.Color('white'))
+                if 370 <= pos[0] <= 420 and 230 <= pos[1] <= 280:
+                    health_num = (health_num - 1) % 3
+                    text2_value = font.render(str(health_list[health_num]), False, pygame.Color('white'))
+                if 485 <= pos[0] <= 535 and 230 <= pos[1] <= 280:
+                    health_num = (health_num + 1) % 3
+                    text2_value = font.render(str(health_list[health_num]), False, pygame.Color('white'))
+
+        screen.blit(fon, (0, 0))
+
+        screen.blit(text1, (150, 120))
+        screen.blit(text1_value, (400, 120))
+        screen.blit(next_button, (330, 110))
+        screen.blit(next_button, (430, 110))
+
+        screen.blit(text2, (150, 240))
+        screen.blit(text2_value, (440, 240))
+        screen.blit(next_button, (370, 230))
+        screen.blit(next_button, (485, 230))
+
+        screen.blit(start_button, (300, 400))
+        screen.blit(author_text, (150, 550))
+
         pygame.display.flip()
         clock.tick(fps)
 
@@ -63,7 +101,7 @@ def start_screen():
 def end_screen(win=False):
     global running, player, level_x, level_y, motion, health, \
         all_sprites, tiles_group, walls_group, player_group, \
-        plant_group, enemy_group, bad_plant_group
+        plant_group, enemy_group, bad_plant_group, gamemap
     if win:
         fon = pygame.transform.scale(load_image('end_screen_win.png'), (width, height))
     else:
@@ -98,10 +136,9 @@ def end_screen(win=False):
     plant_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     bad_plant_group = pygame.sprite.Group()
-    player, level_x, level_y = generate_level(load_level('map.txt'))
-    start_screen()
+    health, gamemap = start_screen()
+    player, level_x, level_y = generate_level(load_level(gamemap))
     running = True
-    health = 10
     motion = 0
 
 
@@ -132,6 +169,8 @@ good_plant_image = load_image('good_plant.png')
 good_plant_image = pygame.transform.scale(good_plant_image, (26, 26))
 bad_plant_image = load_image('bad_plant1.png')
 bad_plant_image = pygame.transform.scale(bad_plant_image, (26, 26))
+start_button = pygame.transform.scale(load_image('bricks.png'), (200, 80))
+next_button  = pygame.transform.scale(load_image('bricks.png'), (50, 50))
 
 tile_width = tile_height = 50
 
@@ -352,14 +391,13 @@ def generate_level(level):
     return new_player, x, y
 
 
-player, level_x, level_y = generate_level(load_level('map2.txt'))
+health, gamemap = start_screen()
+player, level_x, level_y = generate_level(load_level(gamemap))
 
 camera = Camera()
-start_screen()
 running = True
 motion = 0
 while running:
-    print(len(plant_group.sprites()))
     for event in pygame.event.get():
         if event.type == pygame.USEREVENT:
             god_mode = False
