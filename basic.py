@@ -46,7 +46,7 @@ def terminate():
 
 
 def start_screen():
-    fon = pygame.transform.scale(load_image('box.png'), (width, height))
+    fon = pygame.transform.scale(load_image('box1.png'), (width, height))
     font = pygame.font.SysFont(None, 32)
     health_list = [20, 50, 100]
     health_num = 1
