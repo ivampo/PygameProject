@@ -383,11 +383,11 @@ def generate_level(level):
             elif level[y][x] == 'v':
                 enemy_coords.append([x, y, 'v'])
                 Tile('empty', x, y)
-    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for plant in good_plant_coords:
         GoodPlant(plant[0], plant[1])
     for plant in bad_plant_coords:
         BadPlant(plant[0], plant[1])
+    new_player = Player(pygame.transform.scale(load_image('hero.png'), (184, 184)), 4, 4, player_x, player_y)
     for i in enemy_coords:
         Enemy(load_image('dragon1.png'), i[0], i[1], i[2])
     return new_player, x, y
