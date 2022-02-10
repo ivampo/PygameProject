@@ -50,7 +50,7 @@ def start_screen():
     font = pygame.font.SysFont(None, 32)
     health_list = [20, 50, 100]
     health_num = 1
-    map_list = ['map.txt', 'map2.txt', 'map3.txt']
+    map_list = ['map.txt', 'map2.txt', 'map3.txt', 'test_map.txt']
     map_num = 0
     text1 = font.render('Номер карты:', False, pygame.Color('white'))
     text1_value = font.render(str(map_num + 1), False, pygame.Color('white'))
@@ -68,10 +68,10 @@ def start_screen():
                 if 250 <= pos[0] <= 550 and 380 <= pos[1] <= 500:
                     return health_list[health_num], map_list[map_num]
                 if 330 <= pos[0] <= 380 and 110 <= pos[1] <= 160:
-                    map_num = (map_num - 1) % 3
+                    map_num = (map_num - 1) % 4
                     text1_value = font.render(str(map_num + 1), False, pygame.Color('white'))
                 if 430 <= pos[0] <= 480 and 110 <= pos[1] <= 160:
-                    map_num = (map_num + 1) % 3
+                    map_num = (map_num + 1) % 4
                     text1_value = font.render(str(map_num + 1), False, pygame.Color('white'))
                 if 370 <= pos[0] <= 420 and 230 <= pos[1] <= 280:
                     health_num = (health_num - 1) % 3
@@ -417,6 +417,8 @@ while running:
             if event.key == pygame.K_SPACE:
                 for plant in plant_group:
                     plant.collect()
+            if event.key == pygame.K_d:
+                end_screen()
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_LEFT, pygame.K_RIGHT,
                              pygame.K_UP, pygame.K_DOWN]:
