@@ -6,6 +6,7 @@ width = 800
 height = 600
 
 pygame.init()
+pygame.display.set_caption('Драконий лабиринт')
 size = width, height
 screen = pygame.display.set_mode(size)
 fps = 15
@@ -64,7 +65,7 @@ def start_screen():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 print(pos)
-                if 300 <= pos[0] <= 500 and 400 <= pos[1] <= 480:
+                if 250 <= pos[0] <= 550 and 380 <= pos[1] <= 500:
                     return health_list[health_num], map_list[map_num]
                 if 330 <= pos[0] <= 380 and 110 <= pos[1] <= 160:
                     map_num = (map_num - 1) % 3
@@ -83,15 +84,15 @@ def start_screen():
 
         screen.blit(text1, (150, 120))
         screen.blit(text1_value, (400, 120))
-        screen.blit(next_button, (330, 110))
-        screen.blit(next_button, (430, 110))
+        screen.blit(next_buttonL, (330, 110))
+        screen.blit(next_buttonR, (430, 110))
 
         screen.blit(text2, (150, 240))
         screen.blit(text2_value, (440, 240))
-        screen.blit(next_button, (370, 230))
-        screen.blit(next_button, (485, 230))
+        screen.blit(next_buttonL, (370, 230))
+        screen.blit(next_buttonR, (485, 230))
 
-        screen.blit(start_button, (300, 400))
+        screen.blit(start_button, (250, 380))
         screen.blit(author_text, (150, 550))
 
         pygame.display.flip()
@@ -169,8 +170,9 @@ good_plant_image = load_image('good_plant.png')
 good_plant_image = pygame.transform.scale(good_plant_image, (26, 26))
 bad_plant_image = load_image('bad_plant1.png')
 bad_plant_image = pygame.transform.scale(bad_plant_image, (26, 26))
-start_button = pygame.transform.scale(load_image('bricks.png'), (200, 80))
-next_button  = pygame.transform.scale(load_image('bricks.png'), (50, 50))
+start_button = pygame.transform.scale(load_image('start.png'), (300, 120))
+next_buttonR  = pygame.transform.scale(load_image('next1.png'), (50, 50))
+next_buttonL = pygame.transform.rotate(next_buttonR, 180)
 
 tile_width = tile_height = 50
 
