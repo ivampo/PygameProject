@@ -102,7 +102,7 @@ def start_screen():
 def end_screen(win=False):
     global running, player, level_x, level_y, motion, health, \
         all_sprites, tiles_group, walls_group, player_group, \
-        plant_group, enemy_group, bad_plant_group, gamemap
+        plant_group, enemy_group, bad_plant_group, gamemap, points
     if win:
         fon = pygame.transform.scale(load_image('end_screen_win.png'), (width, height))
     else:
@@ -138,6 +138,7 @@ def end_screen(win=False):
     enemy_group = pygame.sprite.Group()
     bad_plant_group = pygame.sprite.Group()
     health, gamemap = start_screen()
+    points = 0
     player, level_x, level_y = generate_level(load_level(gamemap))
     running = True
     motion = 0
